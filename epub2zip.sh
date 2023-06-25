@@ -23,12 +23,11 @@ for file in $(find . -name "*.epub"); do
 
     unzip -d ${tmpPath} ${file} >/dev/null
 
-    htmlPath="${tmpPath}/html"
+    path_list=$(grep "\.html" ${tmpPath}/vol.opf | grep '[0-9]' | awk -F "\"" '{print $4}')
     index=1
-    while ([ -f "./${htmlPath}/$index.html" ]); do
-        # echo ${htmlPath}/$index.html
-        IMGURL=$(cat ${htmlPath}/${index}.html | grep img | cut -d '"' -f 2)
-        # echo ${IMGURL}
+    for path in $path_list; do
+        IMGURL=$(cat ${tmpPath}/${path} | grep src | cut -d '"' -f 2)
+        #echo ${IMGURL}
 
         oldImgPath=${tmpPath}/${IMGURL#../}
 
@@ -42,11 +41,20 @@ for file in $(find . -name "*.epub"); do
     done
 
     cd ${zipPath}
-    zip -q ../${filename}.zip *
+    
+    # 去除 [Kox]
+    new_filename="${filename//\[Kox\]/}"
+    # 去除 .kepub.epub
+    new_filename="${new_filename//\.kepub/}"
+
+    echo $new_filename
+
+    zip  -q ../${new_filename}.zip *
     cd ..
 
     rm -rf ${tmpPath}
     rm -rf ${zipPath}
 
     echo ${zipPath}.zip
+
 done
